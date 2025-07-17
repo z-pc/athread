@@ -76,6 +76,13 @@ try
 }
 catch (...)
 {
+    // stop graph execution if an exception occurs
+    if (_graph)
+    {
+        _graph->_termination_flag.store(true);
+        _graph->_task_available_condition.notify_all();
+    }
+
     _done.set_exception(std::current_exception());
 }
 
