@@ -55,12 +55,12 @@ public:
     /**
      * @brief Constructs a new Executor instance.
      */
-    Executor();
+    Executor() {};
 
     /**
      * @brief Destructor.
      */
-    virtual ~Executor();
+    virtual ~Executor() {};
 
     /**
      * @brief Starts execution of the given ThreadGraph asynchronously.
