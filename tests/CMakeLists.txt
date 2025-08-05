@@ -1,5 +1,11 @@
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9fd7188ec8e5a0974c03b8.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 
 list(APPEND ATHREAD_TEST
   test_graph_operators
@@ -13,8 +19,7 @@ include(GoogleTest)
 
 foreach(test IN LISTS ATHREAD_TEST)
   add_executable(${test} ${test}.cpp)
-  target_link_libraries(${test} ${GTEST_LIBRARIES} GTest::gtest GTest::gtest_main athread)
-  target_include_directories(${test} PUBLIC tests)
+  target_link_libraries(${test} gtest_main athread)
   gtest_discover_tests(${test})
   set_target_properties(${test} PROPERTIES FOLDER "Tests")
 endforeach()
