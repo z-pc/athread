@@ -15,12 +15,12 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif()
 
 project(athread C CXX)
-option(ATHREAD_TRACKING "Write activity of thread pool to console" ON)
+option(AT_TRACKING "Write activity of thread pool to console" ON)
 option(BUILD_TEST "Build the test targets" OFF)
 enable_testing()
 
-if(ATHREAD_TRACKING)
-    add_definitions(-DATHREAD_TRACKING)
+if(AT_TRACKING)
+    add_definitions(-DAT_TRACKING)
 endif()
 
 add_library(athread src/athread/athread.cpp src/athread/threadpool.cpp src/athread/threadgraph.cpp 
