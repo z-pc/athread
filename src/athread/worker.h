@@ -96,9 +96,9 @@ public:
     virtual void process_tasks() = 0;  // Pure virtual function to be implemented by derived classes.
 
 protected:
-    std::uint32_t _id;                                    // A unique identifier for the worker.
-    std::promise<void> _done;                             // Promise to signal when the worker has completed its tasks.
-    std::atomic<WorkerState> _state{WorkerState::Delay};  // Current state of the worker.
+    std::uint32_t _id;                // A unique identifier for the worker.
+    std::promise<void> _done;         // Promise to signal when the worker has completed its tasks.
+    std::atomic<WorkerState> _state;  // Current state of the worker.
 };
 
 class ThreadPoolWorker : public IWorker

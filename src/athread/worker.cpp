@@ -10,6 +10,7 @@ using namespace std;
 IWorker::IWorker(std::uint32_t id)
 {
     _id = id;
+    _state.store(WorkerState::Delay);
     AT_LOG("create worker " << id);
 }
 
