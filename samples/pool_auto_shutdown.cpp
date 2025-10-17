@@ -15,16 +15,16 @@ int main(void)
     pool.push(
         []()
         {
-            AT_COUT("auto_shutdown: run taks 1");
+            AT_COUT("auto_shutdown: run taks 1\n");
             this_thread::sleep_for(1s);
-            AT_COUT("auto_shutdown: end taks 1");
+            AT_COUT("auto_shutdown: end taks 1\n");
         });
     pool.push(
         []()
         {
-            AT_COUT("auto_shutdown: run taks 2");
+            AT_COUT("auto_shutdown: run taks 2\n");
             this_thread::sleep_for(1s);
-            AT_COUT("auto_shutdown: end taks 2");
+            AT_COUT("auto_shutdown: end taks 2\n");
         });
     pool.start();
     pool.wait();
