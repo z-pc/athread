@@ -45,6 +45,8 @@ bool at::ThreadPool::push(IRunnable* runnable)
 {
     if (!executable()) return false;
 
+    std::lock_guard<std::mutex> lock(_worker_mutex);
+
     clean_complete_workers();
 
     if (_worker_contexts.size() < _max_thread_count || _max_thread_count == 0)
@@ -97,6 +99,8 @@ void at::ThreadPool::start()
 
 void at::ThreadPool::wait()
 {
+    std::lock_guard<std::mutex> lock(_worker_mutex);
+
     clean_complete_workers();
 
     std::string exception_msg;
