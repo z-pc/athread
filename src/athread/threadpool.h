@@ -216,6 +216,7 @@ protected:
     std::uint32_t _max_thread_count;
     std::chrono::nanoseconds _alive_seasonal_time;
     at::TaskQueue _task_queue;
+    std::mutex _worker_mutex;
     std::mutex _task_queue_mutex;
     std::condition_variable _work_available_condition;
     std::atomic_bool _termination_flag;
