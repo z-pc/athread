@@ -137,6 +137,9 @@ template <class Fn, class... Args>
 class RunnableHolder : public IRunnable
 {
 public:
+    using FuncType = std::decay_t<Fn>;
+    using ParamsType = std::tuple<std::decay_t<Args>...>;
+
     /**
      * @brief Constructor.
      *
@@ -160,8 +163,8 @@ protected:
      */
     void execute() { std::apply(_func, _params); };
 
-    Fn _func;                     // The callable object to be executed.
-    std::tuple<Args...> _params;  // The arguments for the callable object, stored as a tuple.
+    FuncType _func;      // The callable object to be executed.
+    ParamsType _params;  // The arguments for the callable object, stored as a tuple.
 };
 
 template <class Fn, class... Args>

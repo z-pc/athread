@@ -63,6 +63,9 @@ template <class Fn, class... Args>
 class NodeHolder : public INode
 {
 public:
+    using FuncType = std::decay_t<Fn>;
+    using ParamsType = std::tuple<std::decay_t<Args>...>;
+
     /**
      * @brief Constructor.
      *
@@ -72,7 +75,7 @@ public:
      * @param args The arguments to be passed to the callable object during execution.
      *
      * @note Arguments are stored in a tuple internally and forwarded to the callable
-     *       object during execution.
+     *       object during execution.s
      */
     explicit NodeHolder(Fn&& fn, Args&&... args);
 
@@ -80,8 +83,8 @@ protected:
     void execute() { std::apply(_func, _params); };
 
 private:
-    Fn _func;                     // The callable object to be executed.
-    std::tuple<Args...> _params;  // The arguments for the callable object, stored as a tuple.
+    FuncType _func;      // The callable object to be executed.
+    ParamsType _params;  // The arguments for the callable object, stored as a tuple.
 };
 
 template <class Fn, class... Args>
