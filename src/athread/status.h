@@ -16,16 +16,29 @@
 // limitations under the License.
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ATHREAD_H__
-#define ATHREAD_H__
+#ifndef STATUS_H__
+#define STATUS_H__
 
-#include "diagnostics.h"
-#include "executor.h"
-#include "node.h"
-#include "runnable.h"
-#include "status.h"
-#include "task.h"
-#include "threadgraph.h"
-#include "threadpool.h"
+namespace at
+{
 
-#endif  // ATHREAD_H__
+enum class WaitStatus
+{
+    Ready,        ///< Wait operation completed successfully.
+    Timeout,      ///< Wait operation timed out.
+    Interrupted,  ///< Wait operation was interrupted.
+};
+
+enum class StopReason
+{
+    None,              ///< Not stopped yet / unknown.
+    Completed,         ///< Completed all scheduled work.
+    StoppedByRequest,  ///< Stopped by terminate()/external stop request.
+    LimitReached,      ///< Stopped by max-times/limit policy.
+    Timeout,           ///< Stopped by timeout policy.
+    Error,             ///< Stopped due to runtime error.
+};
+
+}  // namespace at
+
+#endif  // STATUS_H__

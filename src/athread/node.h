@@ -1,5 +1,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Copyright 2024 Le Xuan Tuan Anh
+// 
+// https://github.com/z-pc/athread
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -89,7 +91,7 @@ private:
 
 template <class Fn, class... Args>
 at::NodeHolder<Fn, Args...>::NodeHolder(Fn&& fn, Args&&... args)
-    : _func(std::forward<Fn>(fn)), _params(std::forward<Args>(args)...)
+    : _func{std::forward<Fn>(fn)}, _params{std::forward<Args>(args)...}
 {
 }
 

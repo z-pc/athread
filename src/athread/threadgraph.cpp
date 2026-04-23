@@ -6,7 +6,7 @@
 #include <future>
 #include <iostream>
 
-#include "athread.h"
+#include "diagnostics.h"
 #include "worker.h"
 
 using namespace at;

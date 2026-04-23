@@ -469,7 +469,7 @@ TEST(Executor, StartLoopGraphAsync)
     t2.depend(t1);
 
     at::Executor executor;
-    auto fut = executor.start_loop(graph, 3);
+    auto fut = executor.start(graph, 3);
 
     // Wait for async execution to finish
     fut.get();

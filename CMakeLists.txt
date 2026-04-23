@@ -23,8 +23,31 @@ if(AT_TRACKING)
     add_definitions(-DAT_TRACKING)
 endif()
 
-add_library(athread src/athread/athread.cpp src/athread/threadpool.cpp src/athread/threadgraph.cpp 
-src/athread/task.cpp src/athread/worker.cpp src/athread/executor.cpp)
+set(ATHREAD_SOURCES
+    src/athread/athread.cpp
+    src/athread/threadpool.cpp
+    src/athread/threadgraph.cpp
+    src/athread/task.cpp
+    src/athread/worker.cpp
+    src/athread/executor.cpp
+    src/athread/diagnostics.cpp
+)
+
+set(ATHREAD_HEADERS
+    src/athread/athread.h
+    src/athread/diagnostics.h
+    src/athread/status.h
+    src/athread/executor.h
+    src/athread/node.h
+    src/athread/noncopyable.h
+    src/athread/runnable.h
+    src/athread/task.h
+    src/athread/threadgraph.h
+    src/athread/threadpool.h
+    src/athread/worker.h
+)
+
+add_library(athread ${ATHREAD_SOURCES} ${ATHREAD_HEADERS})
 target_include_directories(athread PUBLIC src)
 
 list(APPEND ATHREAD_SAMPLES

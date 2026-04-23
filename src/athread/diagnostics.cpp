@@ -1,4 +1,3 @@
-#include "athread.h"
 #include "diagnostics.h"
 
 namespace at

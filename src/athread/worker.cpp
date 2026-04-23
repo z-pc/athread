@@ -1,6 +1,6 @@
 #include "worker.h"
 
-#include "athread.h"
+#include "diagnostics.h"
 #include "threadgraph.h"
 #include "threadpool.h"
 

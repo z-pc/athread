@@ -1,6 +1,7 @@
 //////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
 // Copyright 2025 Le Xuan Tuan Anh
+//
+// https://github.com/z-pc/athread
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +16,11 @@
 // limitations under the License.
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef RUNNER_H__
-#define RUNNER_H__
+#ifndef EXECUTOR_H__
+#define EXECUTOR_H__
 
 #include <atomic>
+#include <functional>
 #include <future>
 
 namespace at
@@ -52,43 +54,58 @@ class ThreadGraph;
 class Executor
 {
 public:
-    /**
-     * @brief Constructs a new Executor instance.
-     */
     Executor() {};
-
-    /**
-     * @brief Destructor.
-     */
     virtual ~Executor() {};
 
     /**
-     * @brief Starts execution of the given ThreadGraph asynchronously.
+     * @brief General start function.
      *
-     * Launches the graph's execution in a new detached thread. The returned future
-     * becomes ready when all tasks in the graph have completed or if an exception occurs.
-     *
-     * @param graph Reference to the ThreadGraph to execute.
-     * @return std::future<void> that can be used to wait for completion or catch exceptions.
-     * @note The graph must remain valid until the future is ready.
+     * Execute graph repeatedly. After each run, check stop_condition.
+     * Stop when stop_condition() is true OR max_times is reached.
+     * Then invoke callback() once.
+     */
+    std::future<void> start(at::ThreadGraph& graph, std::size_t max_times, const std::function<bool()>& stop_condition,
+                            const std::function<void()>& callback);
+
+    /**
+     * @brief Execute once.
      */
     std::future<void> start(at::ThreadGraph& graph);
 
     /**
-     * @brief Starts execution of the given ThreadGraph multiple times asynchronously.
-     *
-     * Repeatedly starts and waits for the graph execution for the specified number of times,
-     * each in sequence, in a new detached thread. The returned future becomes ready when all
-     * iterations have completed or if an exception occurs.
-     *
-     * @param graph Reference to the ThreadGraph to execute.
-     * @param times Number of times to execute the graph.
-     * @return std::future<void> that can be used to wait for completion or catch exceptions.
-     * @note The graph must remain valid until the future is ready.
+     * @brief Execute fixed number of times.
      */
-    std::future<void> start_loop(at::ThreadGraph& graph, std::size_t times);
+    std::future<void> start(at::ThreadGraph& graph, std::size_t times);
+
+    /**
+     * @brief Execute fixed number of times + callback, no stop condition.
+     */
+    std::future<void> start(at::ThreadGraph& graph, std::size_t times, const std::function<void()>& callback);
+
+    /**
+     * @brief Execute once, with callback.
+     */
+    std::future<void> start(at::ThreadGraph& graph, const std::function<void()>& callback);
+
+    /**
+     * @brief Execute graph repeatedly. After each run, check stop_condition.
+     * Stop when stop_condition() is true OR max_times is reached.
+     */
+    std::future<void> start_until(at::ThreadGraph& graph, std::size_t max_times,
+                                  const std::function<bool()>& stop_condition);
+
+    /**
+     * @brief Execute until stop condition, with callback.
+     */
+    std::future<void> start_until(at::ThreadGraph& graph, const std::function<bool()>& stop_condition,
+                                  const std::function<void()>& callback);
+
+    /**
+     * @brief Execute until stop condition, no callback.
+     */
+    std::future<void> start_until(at::ThreadGraph& graph, const std::function<bool()>& stop_condition);
 };
 
 }  // namespace at
 
-#endif  // RUNNER_H__
+#endif  // EXECUTOR_H__

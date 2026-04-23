@@ -1,51 +1,118 @@
 #include "executor.h"
 
+#include <limits>
+#include <thread>
+
 #include "threadgraph.h"
+
+std::future<void> at::Executor::start(at::ThreadGraph& graph, std::size_t max_times,
+                                      const std::function<bool()>& stop_condition,
+                                      const std::function<void()>& callback)
+{
+    std::promise<void> promise;
+    std::future<void> future = promise.get_future();
+
+    std::thread(
+        [&graph, max_times, stop_condition, callback, promise = std::move(promise)]() mutable
+        {
+            try
+            {
+                std::size_t iteration = 0;
+                bool stop_by_condition = false;
+
+                while (iteration < max_times)
+                {
+                    graph.start();
+                    graph.wait();
+                    ++iteration;
+
+                    if (stop_condition())
+                    {
+                        stop_by_condition = true;
+                        break;
+                    }
+                }
+
+                const bool stop_by_max_times = (iteration >= max_times);
+                if (stop_by_condition || stop_by_max_times)
+                {
+                    callback();
+                }
+
+                promise.set_value();
+            }
+            catch (...)
+            {
+                promise.set_exception(std::current_exception());
+            }
+        })
+        .detach();
+
+    return future;
+}
+
+std::future<void> at::Executor::start(at::ThreadGraph& graph, const std::function<void()>& callback)
+{
+    return start(graph, 1, []() { return false; }, callback);
+}
+
+std::future<void> at::Executor::start_until(at::ThreadGraph& graph, const std::function<bool()>& stop_condition)
+{
+    return start_until(graph, stop_condition, []() {});
+}
 
 std::future<void> at::Executor::start(at::ThreadGraph& graph)
 {
-    std::promise<void> promise;
-    std::future<void> future = promise.get_future();
-    std::thread(
-        [&graph, promise = std::move(promise)]() mutable
-        {
-            try
-            {
-                graph.start();
-                graph.wait();         // Ensure all previous tasks are completed before starting new ones.
-                promise.set_value();  // Signal that the graph has started successfully.
-            }
-            catch (...)
-            {
-                promise.set_exception(std::current_exception());  // Propagate any exceptions.
-            }
-        })
-        .detach();  // Detach the thread to run independently.
-    return future;  // Return the future to allow waiting for completion.
+    return start(graph, 1, []() { return false; }, []() {});
 }
 
-std::future<void> at::Executor::start_loop(at::ThreadGraph& graph, std::size_t times)
+std::future<void> at::Executor::start(at::ThreadGraph& graph, std::size_t times)
+{
+    return start(graph, times, []() { return false; }, []() {});
+}
+
+std::future<void> at::Executor::start_until(at::ThreadGraph& graph, std::size_t max_times,
+                                            const std::function<bool()>& stop_condition)
+{
+    return start(graph, max_times, stop_condition, []() {});
+}
+
+std::future<void> at::Executor::start(at::ThreadGraph& graph, std::size_t times, const std::function<void()>& callback)
+{
+    return start(graph, times, []() { return false; }, callback);
+}
+
+std::future<void> at::Executor::start_until(at::ThreadGraph& graph, const std::function<bool()>& stop_condition,
+                                            const std::function<void()>& callback)
 {
     std::promise<void> promise;
     std::future<void> future = promise.get_future();
+
     std::thread(
-        [&graph, times, promise = std::move(promise)]() mutable
+        [&graph, stop_condition, callback, promise = std::move(promise)]() mutable
         {
             try
             {
-                for (std::size_t i = 0; i < times; ++i)
+                while (true)
                 {
-                    graph.wait();  // Ensure all previous tasks are completed before starting new ones.
                     graph.start();
+                    graph.wait();
+
+                    if (stop_condition())
+                    {
+                        break;
+                    }
                 }
-                graph.wait();         // Wait for the last execution to complete.
-                promise.set_value();  // Signal that the graph has started successfully.
+
+                callback();
+                promise.set_value();
             }
             catch (...)
             {
-                promise.set_exception(std::current_exception());  // Propagate any exceptions.
+                promise.set_exception(std::current_exception());
             }
         })
-        .detach();  // Detach the thread to run independently.
-    return future;  // Return the future to allow waiting for completion.
+        .detach();
+
+    return future;
 }
