@@ -6,6 +6,7 @@ list(APPEND ATHREAD_TEST
   test_task_iterator
   test_graph_wait
   test_catch_exception
+  test_executor
 )
 
 include(GoogleTest)
