@@ -28,7 +28,9 @@ ThreadGraph::ThreadGraph(std::uint32_t thread_count, bool enable_optimized_threa
 {
     _thread_count = thread_count;
     _termination_flag = false;
+    _executing_flag = false;
     _enable_optimized_threads = enable_optimized_threads;
+    _stop_reason = StopReason::None;
 }
 
 ThreadGraph::~ThreadGraph() { clear(); }
@@ -104,6 +106,7 @@ void at::ThreadGraph::start()
     wait();
     reset();
     reset_all_tasks_state();
+    _stop_reason = StopReason::None;
     _executing_flag.store(true);
     _ready_tasks_cache = _task_pool;
 
@@ -120,6 +123,7 @@ void at::ThreadGraph::start()
 void at::ThreadGraph::terminate(bool call_wait /*= true*/)
 {
     _termination_flag.store(true);
+    _stop_reason = StopReason::StoppedByRequest;
     if (call_wait) wait();
 }
 
@@ -150,12 +154,19 @@ void at::ThreadGraph::wait()
         }
     }
 
-    reset();
-
     if (!exception_msg.empty())
     {
+        _stop_reason = StopReason::Error;
+        reset();
         throw std::runtime_error("Exception occurred in worker thread: " + exception_msg);
     }
+
+    if (_stop_reason == StopReason::None)
+    {
+        _stop_reason = _termination_flag.load() ? StopReason::StoppedByRequest : StopReason::Completed;
+    }
+
+    reset();
 }
 
 at::ThreadGraph& ThreadGraph::operator=(ThreadGraph&& other) noexcept
@@ -171,6 +182,7 @@ at::ThreadGraph& ThreadGraph::operator=(ThreadGraph&& other) noexcept
         _task_pool = std::move(other._task_pool);
         _ready_tasks_cache = std::move(other._ready_tasks_cache);
         _worker_contexts = std::move(other._worker_contexts);
+        _stop_reason = other._stop_reason;
 
         _termination_flag.store(other._termination_flag.load());
         _executing_flag.store(other._executing_flag.load());
@@ -184,7 +196,8 @@ ThreadGraph::ThreadGraph(ThreadGraph&& other) noexcept
       _thread_count(other._thread_count),
       _task_pool(std::move(other._task_pool)),
       _ready_tasks_cache(std::move(other._ready_tasks_cache)),
-      _worker_contexts(std::move(other._worker_contexts))
+      _worker_contexts(std::move(other._worker_contexts)),
+      _stop_reason(other._stop_reason)
 {
     // Atomics and condition_variable cannot be moved, so reset them
     _termination_flag.store(other._termination_flag.load());

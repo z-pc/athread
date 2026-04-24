@@ -34,6 +34,7 @@
 
 namespace at
 {
+class Executor;
 
 enum class TraceNodeState
 {
@@ -77,6 +78,7 @@ class ThreadGraph : public at::noncopyable_::noncopyable
 {
     friend class IWorker;
     friend class GraphWorker;
+    friend class Executor;
 
 public:
     /**
@@ -197,6 +199,8 @@ public:
      */
     bool empty() const { return _task_pool.empty(); }
 
+    StopReason stop_reason() const { return _stop_reason; }
+
     /**
      * @brief Returns the number of tasks currently in the graph.
      * @return Number of tasks in the graph.
@@ -218,6 +222,7 @@ private:
      * @return true if executing, false otherwise.
      */
     bool executing() const;
+    void stop_reason(StopReason reason) { _stop_reason = reason; }
 
     virtual void reset_all_tasks_state();
     virtual std::pair<TraceNodeState, INode*> trace_ready_node(const INode* entryNode);
@@ -239,6 +244,7 @@ private:
     std::vector<INode*> _task_pool;          ///< Set of tasks currently in the graph.
     std::vector<INode*> _ready_tasks_cache;  ///< Ready tasks cache for internal processing.
     std::vector<std::unique_ptr<at::WorkerContext>> _worker_contexts;  ///< Contexts for worker threads.
+    StopReason _stop_reason{StopReason::None};                         ///< Reason for stopping execution.
 };
 
 template <class Fn, class... Args, std::enable_if_t<std::is_invocable_v<Fn, Args...>, bool> /*= true*/>

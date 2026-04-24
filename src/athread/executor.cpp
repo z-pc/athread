@@ -18,7 +18,8 @@ std::future<void> at::Executor::start(at::ThreadGraph& graph, std::size_t max_ti
             try
             {
                 std::size_t iteration = 0;
-                bool stop_by_condition = false;
+                bool condition_met = false;
+                bool terminated_by_request = false;
 
                 while (iteration < max_times)
                 {
@@ -26,15 +27,27 @@ std::future<void> at::Executor::start(at::ThreadGraph& graph, std::size_t max_ti
                     graph.wait();
                     ++iteration;
 
+                    if (graph.stop_reason() == StopReason::StoppedByRequest)
+                    {
+                        terminated_by_request = true;
+                        break;
+                    }
+
                     if (stop_condition())
                     {
-                        stop_by_condition = true;
+                        condition_met = true;
+                        graph.stop_reason(StopReason::StoppedByRequest);
                         break;
                     }
                 }
 
-                const bool stop_by_max_times = (iteration >= max_times);
-                if (stop_by_condition || stop_by_max_times)
+                const bool max_times_reached = (!terminated_by_request && !condition_met && iteration >= max_times);
+
+                if (max_times_reached)
+                {
+                    graph.stop_reason(StopReason::LimitReached);
+                }
+                if (condition_met || max_times_reached)
                 {
                     callback();
                 }
@@ -43,6 +56,7 @@ std::future<void> at::Executor::start(at::ThreadGraph& graph, std::size_t max_ti
             }
             catch (...)
             {
+                graph.stop_reason(StopReason::Error);
                 promise.set_exception(std::current_exception());
             }
         })
@@ -93,22 +107,36 @@ std::future<void> at::Executor::start_until(at::ThreadGraph& graph, const std::f
         {
             try
             {
+                bool condition_met = false;
+
                 while (true)
                 {
                     graph.start();
                     graph.wait();
 
+                    if (graph.stop_reason() == StopReason::StoppedByRequest)
+                    {
+                        break;
+                    }
+
                     if (stop_condition())
                     {
+                        condition_met = true;
+                        graph.stop_reason(StopReason::StoppedByRequest);
                         break;
                     }
                 }
 
-                callback();
+                if (condition_met)
+                {
+                    callback();
+                }
+
                 promise.set_value();
             }
             catch (...)
             {
+                graph.stop_reason(StopReason::Error);
                 promise.set_exception(std::current_exception());
             }
         })
