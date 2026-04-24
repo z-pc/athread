@@ -27,5 +27,6 @@
 #include "task.h"
 #include "threadgraph.h"
 #include "threadpool.h"
+#include "version.h"
 
 #endif  // ATHREAD_H__

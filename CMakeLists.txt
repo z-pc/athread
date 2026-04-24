@@ -14,7 +14,15 @@ if(UNIX)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif()
 
-project(athread C CXX)
+set(ATHREAD_VERSION_MAJOR 1)
+set(ATHREAD_VERSION_MINOR 0)
+set(ATHREAD_VERSION_PATCH 1)
+
+project(athread
+    VERSION ${ATHREAD_VERSION_MAJOR}.${ATHREAD_VERSION_MINOR}.${ATHREAD_VERSION_PATCH}
+    LANGUAGES C CXX
+)
+
 option(AT_TRACKING "Write activity of thread pool to console" ON)
 option(BUILD_TEST "Build the test targets" OFF)
 enable_testing()
@@ -45,6 +53,7 @@ set(ATHREAD_HEADERS
     src/athread/threadgraph.h
     src/athread/threadpool.h
     src/athread/worker.h
+    src/athread/version.h
 )
 
 add_library(athread ${ATHREAD_SOURCES} ${ATHREAD_HEADERS})
@@ -71,7 +80,7 @@ foreach(sample IN LISTS ATHREAD_SAMPLES)
 endforeach()
 
 if(BUILD_TEST)
-  message(STATUS "Building tests...")    
+  message(STATUS "Building tests...")
   add_subdirectory(tests)
 else()
   message(STATUS "Tests are disabled.")
